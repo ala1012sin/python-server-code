@@ -1,0 +1,34 @@
+{
+    "building_id": "building_1",
+    "wifi_list": [
+      {"ssid": "4F_AP1", "bssid": "4F_AP1", "level": -40},
+      {"ssid": "4F_AP2", "bssid": "4F_AP2", "level": -42},
+      {"ssid": "4F_AP3", "bssid": "4F_AP3", "level": -39},
+      {"ssid": "3F_AP1", "bssid": "3F_AP1", "level": -60},
+      {"ssid": "2F_AP1", "bssid": "2F_AP1", "level": -65}
+    ],
+    "building_data": {
+      "graph": {
+        "4F_N1": {"pos": [2, 2, 9], "edges": ["4F_N2"]},
+        "4F_N2": {"pos": [4, 2, 9], "edges": ["4F_N1", "4F_N3"]},
+        "4F_N3": {"pos": [6, 2, 9], "edges": ["4F_N2", "4F_STAIR"]},
+        "4F_STAIR": {"pos": [6, 4, 9], "edges": ["4F_N3", "3F_STAIR"]},
+        "3F_STAIR": {"pos": [6, 4, 6], "edges": ["4F_STAIR", "2F_STAIR"]},
+        "2F_STAIR": {"pos": [6, 4, 3], "edges": ["3F_STAIR", "1F_STAIR"]},
+        "1F_STAIR": {"pos": [6, 4, 0], "edges": ["2F_STAIR", "1F_N3"]},
+        "1F_N3": {"pos": [5, 4, 0], "edges": ["1F_STAIR", "1F_N2"]},
+        "1F_N2": {"pos": [3, 4, 0], "edges": ["1F_N3", "1F_N1"]},
+        "1F_N1": {"pos": [1, 4, 0], "edges": ["1F_N2", "1F_EXIT1"]},
+        "1F_EXIT1": {"pos": [0, 4, 0], "edges": ["1F_N1"]}
+      },
+      "ap_nodes": {
+        "4F_AP1": [2, 2, 9],
+        "4F_AP2": [4, 2, 9],
+        "4F_AP3": [6, 2, 9],
+        "3F_AP1": [3, 3, 6],
+        "2F_AP1": [3, 3, 3]
+      },
+      "exits": ["1F_EXIT1"]
+    }
+  }
+  

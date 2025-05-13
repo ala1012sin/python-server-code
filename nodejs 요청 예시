@@ -1,0 +1,15 @@
+const fs = require('fs');
+const axios = require('axios');
+
+const wifiList = JSON.parse(fs.readFileSync('./wifi_list.json'));
+const buildingData = JSON.parse(fs.readFileSync('./building_data.json'));
+
+axios.post("https://python-server-code-production.up.railway.app/locate", {
+  building_id: "building_1",
+  wifi_list: wifiList,
+  building_data: buildingData
+}).then(res => {
+  console.log(res.data);
+}).catch(err => {
+  console.error(err.response?.data || err.message);
+});
