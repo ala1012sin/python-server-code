@@ -18,14 +18,14 @@ app = FastAPI(
 # 데이터 모델 정의
 # ==========================
 class WiFiData(BaseModel):
-    ssid: str
-    bssid: str
-    level: int
+    ssid: str = Field(..., description="WiFi AP의 SSID (네트워크 이름)")
+    bssid: str = Field(..., description="WiFi AP의 BSSID (MAC 주소)")
+    level: int = Field(..., description="RSSI 신호 세기 (dBm)")
 
 class WiFiRequest(BaseModel):
-    wifi_list: List[WiFiData]
-    building_id: str
-    building_data: Dict  # 건물 그래프와 AP 위치 포함
+    wifi_list: List[WiFiData] = Field(..., description="WiFi AP 스캔 결과 리스트")
+    building_id: str = Field(..., description="건물 식별 ID")
+    building_data: Dict = Field(..., description="건물 노드/엣지 그래프와 AP 위치 정보")
 
 # ==========================
 # RSSI → 거리 변환
@@ -160,11 +160,11 @@ def a_star(start_id: str, goal_id: str, graph: Dict[str, Dict]) -> List[str]:
 # ==========================
 # API: 위치 추정 + 경로 계산
 # ==========================
-@app.post("/locate")
+@app.post("/locate", summary="사용자 위치 예측 및 탈출 경로 탐색", description="WiFi 스캔 데이터를 통해 현재 위치를 추정하고, 가장 가까운 출구로 가는 최단 경로를 반환합니다.")
 async def locate_user(data: WiFiRequest):
-    graph_data = data.building_data["graph"]     # 노드 + 엣지 정보
-    ap_nodes = data.building_data["ap_nodes"]    # AP 위치 (bssid -> (x, y, z))
-    exits = data.building_data["exits"]          # 탈출구 노드 ID 목록
+    graph_data = data.building_data["graph"]
+    ap_nodes = data.building_data["ap_nodes"]
+    exits = data.building_data["exits"]
 
     user_pos_raw = trilateration_3d(data.wifi_list, ap_nodes)
     if user_pos_raw is None:
@@ -175,7 +175,7 @@ async def locate_user(data: WiFiRequest):
     user_pos = (user_pos_raw[0], user_pos_raw[1], z_corrected)
     user_node = find_closest_node(user_pos, graph_data, floor)
 
-    # 가장 가까운 탈출구로 경로 탐색
+    # 경로 탐색 (A*)
     shortest_path = []
     for exit_node in exits:
         path = a_star(user_node, exit_node, graph_data)
