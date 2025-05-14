@@ -6,7 +6,13 @@ import math
 from scipy.optimize import minimize
 from collections import Counter
 
-app = FastAPI()
+app = FastAPI(
+    title="Indoor Navigation API",
+    description="WiFi 측정을 통한 실내 사용자 위치 예측 및 최단 경로 탐색 API",
+    version="1.0.0",
+    docs_url="/docs",  # Swagger UI URL
+    redoc_url="/redoc"  # Redoc 문서 URL (선택)
+)
 
 # ==========================
 # 데이터 모델 정의
