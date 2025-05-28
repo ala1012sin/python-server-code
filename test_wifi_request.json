@@ -1,0 +1,9 @@
+{
+  "apList": [
+    {"ssid": "eduroam", "bssid": "a8:ba:25:c5:3c:6a", "level": -42},
+    {"ssid": "eduroam", "bssid": "a8:ba:25:d2:e6:70", "level": -44},
+    {"ssid": "eduroam", "bssid": "a8:ba:25:c5:31:96", "level": -43},
+    {"ssid": "HomeWifi", "bssid": "11:22:33:44:55:66", "level": -70},
+    {"ssid": "GuestNet", "bssid": "AA:BB:CC:DD:EE:FF", "level": -68}
+  ]
+}
