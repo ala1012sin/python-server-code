@@ -49,14 +49,35 @@ def euclidean_distance(p1, p2):
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2)))
 
 # ==== 층수 추정 ====
-def estimate_floor_majority(wifi_list, ap_nodes):
+def get_floor_from_z(z):
+    if z < 0:
+        return -1  # 지하
+    elif 0 <= z < 3:
+        return 1
+    elif 3 <= z < 6:
+        return 2
+    elif 6 <= z < 9:
+        return 3
+    elif 9 <= z < 12:
+        return 4
+    else:
+        return 5  # 예외 처리용
+
+def estimate_floor_by_top6_ap(wifi_list, ap_nodes):
+    # 건물 데이터에 포함된 AP만 필터링
+    valid_aps = [wifi for wifi in wifi_list if wifi.bssid.lower() in ap_nodes]
+
+    # 신호 세기 기준으로 정렬 후 상위 6개 추출
+    top6 = sorted(valid_aps, key=lambda x: x.level, reverse=True)[:6]
+
+    # 해당 AP들의 z 좌표를 바탕으로 층수 계산
     floors = []
-    for wifi in wifi_list:
+    for wifi in top6:
         bssid = wifi.bssid.lower()
-        if bssid in ap_nodes:
-            _, _, z = ap_nodes[bssid]
-            floor = int(z // 3) + 1
-            floors.append(floor)
+        _, _, z = ap_nodes[bssid]
+        floor = get_floor_from_z(z)
+        floors.append(floor)
+
     return Counter(floors).most_common(1)[0][0] if floors else -1
 
 # ==== XY 위치 추정 ====
@@ -128,11 +149,14 @@ async def locate_user(data: WiFiRequest):
     # === 상위 6개 AP만 사용 ===
     top_aps = sorted_ap[:6]
 
-    # === 층수, 위치, 노드, 경로 계산 ===
-    floor = estimate_floor_majority(top_aps, ap_nodes)
+   
+    # === 상위 6개 AP만 사용해서 층 추정 ===
+    floor = estimate_floor_by_top6_ap(data.apList, ap_nodes)
+    print(f"📍 추정된 층수: {floor}") 
     if floor == -1:
         return {"error": "층수 추정 실패"}
-
+    
+     # ===  위치, 노드, 경로 계산 ===# 
     xy = trilateration_xy(top_aps, ap_nodes)
     if not xy:
         return {"error": "위치 추정 실패"}
@@ -153,7 +177,7 @@ async def locate_user(data: WiFiRequest):
         "escape_path": shortest_path
     }
 
-    # === 로그: 응답 ===
+     # === 로그: 응답 ===
     print("\n📤 응답 데이터:", json.dumps(result, indent=2, ensure_ascii=False))
 
     return result
