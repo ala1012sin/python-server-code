@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 from collections import Counter
-from scipy.optimize import minimize
 import heapq
 import math
 import json
@@ -27,9 +26,8 @@ graph = building_data["graph"]
 ap_nodes = building_data["ap_nodes"]
 exits = building_data["exits"]
 
-# 양방향 edge 보정
+# ==== 양방향 edge 보정 ====
 for node, data in graph.items():
-    # edges가 없으면 빈 리스트로 초기화
     edges = data.get("edges", [])
     valid_edges = []
     for neighbor in edges:
@@ -39,9 +37,9 @@ for node, data in graph.items():
                 graph[neighbor]["edges"] = []
             if node not in graph[neighbor]["edges"]:
                 graph[neighbor]["edges"].append(node)
-    graph[node]["edges"] = valid_edges  # 유효한 노드만 유지
+    graph[node]["edges"] = valid_edges
 
-# ==== 유틸 ====
+# ==== 유틸 함수 ====
 def rssi_to_distance(rssi: int, A=-45, n=3):
     return 10 ** ((A - rssi) / (10 * n))
 
@@ -51,7 +49,7 @@ def euclidean_distance(p1, p2):
 # ==== 층수 추정 ====
 def get_floor_from_z(z):
     if z < 0:
-        return -1  # 지하
+        return -1
     elif 0 <= z < 3:
         return 1
     elif 3 <= z < 6:
@@ -61,48 +59,49 @@ def get_floor_from_z(z):
     elif 9 <= z < 12:
         return 4
     else:
-        return 5  # 예외 처리용
+        return 5
 
 def estimate_floor_by_top6_ap(wifi_list, ap_nodes):
-    # 건물 데이터에 포함된 AP만 필터링
     valid_aps = [wifi for wifi in wifi_list if wifi.bssid.lower() in ap_nodes]
-
-    # 신호 세기 기준으로 정렬 후 상위 6개 추출
     top6 = sorted(valid_aps, key=lambda x: x.level, reverse=True)[:6]
-
-    # 해당 AP들의 z 좌표를 바탕으로 층수 계산
     floors = []
     for wifi in top6:
         bssid = wifi.bssid.lower()
         _, _, z = ap_nodes[bssid]
         floor = get_floor_from_z(z)
         floors.append(floor)
-
     return Counter(floors).most_common(1)[0][0] if floors else -1
 
-# ==== XY 위치 추정 ====
-def trilateration_xy(wifi_list, ap_nodes):
-    points, distances = [], []
+# ==== 위치 추정 (RSSI 가중 평균 방식) ====
+def weighted_average_xy(wifi_list, ap_nodes, A=-45, n=3):
+    weighted_sum_x = 0
+    weighted_sum_y = 0
+    total_weight = 0
+
     for wifi in wifi_list:
         bssid = wifi.bssid.lower()
         if bssid in ap_nodes:
             x, y, _ = ap_nodes[bssid]
         else:
-            x, y = np.random.uniform(0, 10), np.random.uniform(0, 10)
-        d = rssi_to_distance(wifi.level)
-        points.append((x, y))
-        distances.append(d)
-    if len(points) < 3:
+            continue
+
+        distance = rssi_to_distance(wifi.level, A, n)
+        weight = 1 / (distance + 1e-6)
+        weighted_sum_x += x * weight
+        weighted_sum_y += y * weight
+        total_weight += weight
+
+    if total_weight == 0:
         return None
-    def loss(pos):
-        return sum((math.dist(pos, (px, py)) - d)**2 for (px, py), d in zip(points, distances))
-    result = minimize(loss, np.mean(points, axis=0))
-    return tuple(result.x) if result.success else tuple(np.mean(points, axis=0))
+
+    return weighted_sum_x / total_weight, weighted_sum_y / total_weight
 
 # ==== 가장 가까운 노드 찾기 ====
 def find_closest_node(pos, graph, floor):
     z_min, z_max = 3 * (floor - 1), 3 * floor
     nodes_in_floor = {n: d for n, d in graph.items() if z_min <= d["pos"][2] < z_max}
+    if not nodes_in_floor:
+        return None
     closest = min(nodes_in_floor, key=lambda n: euclidean_distance(pos, nodes_in_floor[n]["pos"]))
     if "door" not in closest:
         base = closest.split("_")[0]
@@ -140,29 +139,25 @@ def a_star(start, goal, graph):
 # ==== API ====
 @app.post("/locate")
 async def locate_user(data: WiFiRequest):
-    # === 로그: 요청 ===
-    print("\n📡 요청된 AP 리스트:")
     sorted_ap = sorted(data.apList, key=lambda x: x.level, reverse=True)
     for ap in sorted_ap:
         print(f"  - {ap.ssid} / {ap.bssid.lower()} / RSSI: {ap.level}")
 
-    # === 상위 6개 AP만 사용 ===
-    top_aps = sorted_ap[:6]
-
-   
-    # === 상위 6개 AP만 사용해서 층 추정 ===
+    # 층 추정
     floor = estimate_floor_by_top6_ap(data.apList, ap_nodes)
-    print(f"📍 추정된 층수: {floor}") 
+    print(f"📍 추정된 층수: {floor}")
     if floor == -1:
         return {"error": "층수 추정 실패"}
-    
-     # ===  위치, 노드, 경로 계산 ===# 
-    xy = trilateration_xy(top_aps, ap_nodes)
+
+    # 위치 추정
+    xy = weighted_average_xy(data.apList, ap_nodes)
     if not xy:
         return {"error": "위치 추정 실패"}
 
     user_pos = (xy[0], xy[1], 1.5 + 3 * (floor - 1))
     nearest_node = find_closest_node(user_pos, graph, floor)
+    if not nearest_node:
+        return {"error": f"층 {floor}에 가까운 노드가 없습니다."}
 
     shortest_path = []
     for exit in exits:
@@ -171,13 +166,15 @@ async def locate_user(data: WiFiRequest):
             shortest_path = path
 
     result = {
-        "estimated_location": {"x": user_pos[0], "y": user_pos[1], "z": user_pos[2]},
+        "estimated_location": {
+            "x": user_pos[0],
+            "y": user_pos[1],
+            "z": user_pos[2]
+        },
         "floor": floor,
         "closest_node": nearest_node,
         "escape_path": shortest_path
     }
 
-     # === 로그: 응답 ===
     print("\n📤 응답 데이터:", json.dumps(result, indent=2, ensure_ascii=False))
-
     return result
