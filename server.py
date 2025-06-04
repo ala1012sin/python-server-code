@@ -99,16 +99,20 @@ def weighted_average_xy(wifi_list, ap_nodes, A=-45, n=3):
 # ==== 가장 가까운 노드 찾기 ====
 def find_closest_node(pos, graph, floor):
     z_min, z_max = 3 * (floor - 1), 3 * floor
-    nodes_in_floor = {n: d for n, d in graph.items() if z_min <= d["pos"][2] < z_max}
-    if not nodes_in_floor:
+
+    # 해당 층의 모든 노드 중 복도 노드만 필터링
+    hallway_nodes = {
+        name: data for name, data in graph.items()
+        if z_min <= data["pos"][2] < z_max and "H" in name
+    }
+
+    if not hallway_nodes:
         return None
-    closest = min(nodes_in_floor, key=lambda n: euclidean_distance(pos, nodes_in_floor[n]["pos"]))
-    if "door" not in closest:
-        base = closest.split("_")[0]
-        door_node = base + "_door"
-        if door_node in graph:
-            return door_node
+
+    # 복도 노드 중 가장 가까운 노드 찾기
+    closest = min(hallway_nodes, key=lambda n: euclidean_distance(pos, hallway_nodes[n]["pos"]))
     return closest
+
 
 # ==== A* 알고리즘 ====
 def a_star(start, goal, graph):
@@ -165,6 +169,14 @@ async def locate_user(data: WiFiRequest):
         if path and (not shortest_path or len(path) < len(shortest_path)):
             shortest_path = path
 
+    detailed_path = []
+    for node_name in shortest_path:
+        if node_name in graph:
+            pos = graph[node_name]["pos"]
+            detailed_path.append({
+                "node": node_name,"x": pos[0],"y": pos[1]
+                })
+
     result = {
         "estimated_location": {
             "x": user_pos[0],
@@ -173,7 +185,7 @@ async def locate_user(data: WiFiRequest):
         },
         "floor": floor,
         "closest_node": nearest_node,
-        "escape_path": shortest_path
+        "escape_path": detailed_path
     }
 
     print("\n📤 응답 데이터:", json.dumps(result, indent=2, ensure_ascii=False))
