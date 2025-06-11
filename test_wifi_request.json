@@ -1,0 +1,18 @@
+{
+  "apList": [
+  { "ssid": "1301", "bssid": "88:36:6c:c1:2f:9e", "level": -57 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d4:9d:b0", "level": -63 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d4:9d:a0", "level": -64 },
+  { "ssid": "Comnet-5G", "bssid": "6c:cd:d6:2a:84:c2", "level": -67 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d2:aa:e0", "level": -67 },
+  { "ssid": "1301 5G", "bssid": "88:36:6c:c1:2f:9c", "level": -70 },
+  { "ssid": "NETGEAR", "bssid": "00:1e:2a:72:b8:70", "level": -71 },
+  { "ssid": "지현", "bssid": "f2:14:86:8f:50:d2", "level": -73 },
+  { "ssid": "Galaxy S25+ 09EF", "bssid": "f2:80:84:46:32:86", "level": -78 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d2:aa:f0", "level": -81 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d4:4e:e0", "level": -81 },
+  { "ssid": "Kmu 1101", "bssid": "70:5d:cc:94:d0:b6", "level": -83 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d2:19:f0", "level": -87 },
+  { "ssid": "eduroam", "bssid": "a8:ba:25:d4:4e:f0", "level": -89 }
+]
+}
