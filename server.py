@@ -118,10 +118,17 @@ async def locate_user(data: WiFiRequest):
     x, y, z = xyz
 
     # 층 계산
-    if z < 0:
+    if z < 2:
         floor = -1
-    else:
-        floor = int(z // 3) + 1
+    elif z < 5: 
+        floor = 1
+    elif z < 8:
+        floor = 2
+    elif z < 11:
+        floor = 3
+    else :
+        floor = 4
+          
     print(f"📍 추정된 위치: x={x:.2f}, y={y:.2f}, z={z:.2f}, floor={floor}")
 
     # 가장 가까운 노드
