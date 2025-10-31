@@ -27,7 +27,6 @@
   <strong>Backend</strong><br>
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
 </p>
 <p>
   <strong>Database</strong><br>
@@ -46,6 +45,6 @@
     1.  (예시) 단순 삼각측량 대신, `칼만 필터(Kalman Filter)`를 적용하여 노이즈를 보정하고 위치 값을 평활화했습니다.
     2.  (예시) 또는, 가장 신호가 강한 AP 3개뿐만 아니라 5~6개의 AP 정보를 `가중 평균(Weighted Average)`하여 오차 범위를 줄였습니다.
 
-### 2. (만약 FastAPI를 썼다면) 실시간 데이터 처리
+### 2.실시간 데이터 처리
 * **문제:** 다수의 클라이언트가 동시에 위치 정보를 요청할 때, FastAPI의 비동기 처리를 효과적으로 활용해야 했습니다.
 * **해결:** 무거운 계산(삼각측량) 로직을 `async def` 함수 내에서 별도의 스레드 풀(`run_in_threadpool`)에서 실행하도록 분리하여, 다른 API 요청 처리가 블로킹(차단)되지 않도록 성능을 개선했습니다.
