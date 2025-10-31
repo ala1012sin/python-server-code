@@ -5,16 +5,15 @@
 
 ### 1. 앱 상태별 UI (SAFE / DANGER / CHECKING)
 <p align="center">
-  <img src="[ 여기에 'SAFE/DANGER' 3분할<img width="2616" height="1834" alt="상태별 UI" src="https://github.com/user-attachments/assets/fbdeb38b-b3df-47d6-9fdd-05ec95596f19" />
- 이미지를 드래그 앤 드롭 ]" width="700"/>
+  <img src="https://github.com/user-attachments/assets/c19858a4-eb59-44ce-9ce5-6547774c3ebb" alt="상태별 UI" width="700"/>
 </p>
 
 ### 2. 핵심 기능: 실내 대피 경로 안내
 <p align="center">
-  <img src="[ 여기에 '대피 <img width="904" height="1958" alt="실내 위치" src="https://github.com/user-attachments/assets/1a5eda99-561a-420c-9037-1f2b7d5af89d" />
-경로 지도' 이미지를 드래그 앤 드롭 ]" width="350"/>
+  <img width="350" alt="실내 위치" src="https://github.com/user-attachments/assets/a580c234-9c0f-497e-a28f-746ad9a31d8c" />
 </p>
 <br>
+
 
 ## 📜 프로젝트 개요
 본 프로젝트는 GPS가 작동하지 않는 실내 환경에서, **Python과 FastAPI**를 기반으로 한 백엔드 서버를 구축하여 사용자의 위치를 측위하고 최적의 대피 경로를 제공하는 캡스톤 디자인 프로젝트입니다.
